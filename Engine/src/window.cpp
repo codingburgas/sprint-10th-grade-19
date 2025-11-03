@@ -14,34 +14,46 @@ Window::Window(InputStream& outInputStream)
 	RECT windowRect{0, 0, 1280, 720};
 	AdjustWindowRect(&windowRect, windowStyle, /*bMenu=*/ false);
 
-	windowHandle = CreateWindow(WindowClass::getClassName(), L"Game Title Caption Text", windowStyle,
+	handle = CreateWindow(WindowClass::getClassName(), L"Game Title Caption Text", windowStyle,
 		CW_USEDEFAULT, CW_USEDEFAULT, windowRect.right, windowRect.bottom,
 		nullptr, nullptr, WindowClass::getInstance(), &outInputStream);
 
-	ShowWindow(windowHandle, SW_SHOW);
+	ShowWindow(handle, SW_SHOW);
 }
 
 Window::~Window()
 {
-	DestroyWindow(windowHandle);
+	DestroyWindow(handle);
 }
 
 bool Window::dispatchMessage() const
 {
 	MSG message{};
 
-	if (PeekMessage(&message, windowHandle, 0, 0, PM_REMOVE))
+	while (PeekMessage(&message, handle, 0, 0, PM_REMOVE))
 	{
 		TranslateMessage(&message);
 		DispatchMessage(&message);
 	}
 
-	if (message.message == WM_NULL && !IsWindow(windowHandle))
+	if (message.message == WM_NULL && !IsWindow(handle))
 	{
 		return false;
 	}
 
 	return true;
+}
+
+HWND Window::getHandle() const
+{
+	return handle;
+}
+
+Window::ClientSize Window::getClientSize() const
+{
+	RECT clientRect;
+	GetClientRect(handle, &clientRect);
+	return {static_cast<UINT>(clientRect.right) - clientRect.left, static_cast<UINT>(clientRect.bottom) - clientRect.top};
 }
 
 LRESULT CALLBACK Window::setupWindowProcess(HWND windowHandle, UINT message, WPARAM wParam, LPARAM lParam)

@@ -21,6 +21,12 @@ private:
 	};
 
 public:
+	struct ClientSize
+	{
+		UINT width;
+		UINT height;
+	};
+
 	class InputStream;
 
 	Window(InputStream& outInputStream);
@@ -30,15 +36,21 @@ public:
 
 	bool dispatchMessage() const;
 
+	HWND getHandle() const;
+
+	ClientSize getClientSize() const;
+
 private:
 	static LRESULT CALLBACK setupWindowProcess(HWND, UINT message, WPARAM, LPARAM);
 	static LRESULT CALLBACK mainWindowProcess(HWND, UINT message, WPARAM, LPARAM);
 
-	HWND windowHandle;
+	HWND handle;
 
 	DWORD windowStyle;
 };
 
+// Facilitates access to a window's mouse, keyboard, resize input.
+// Passed to the window's constructor.
 class Window::InputStream
 {
 	friend LRESULT CALLBACK Window::setupWindowProcess(HWND, UINT message, WPARAM, LPARAM);

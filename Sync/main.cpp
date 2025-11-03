@@ -9,5 +9,8 @@ int CALLBACK WinMain(
 {
 	Engine engine;
 
-	while (engine.processMessage());
+	while (engine.processMessage())
+	{
+		engine.renderFrame();
+	}
 }
