@@ -31,5 +31,8 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> inputLayout;
 	DirectX::BasicEffect* effect = nullptr;
 	DirectX::PrimitiveBatch<DirectX::VertexPositionColor>* primitiveBatch = nullptr;
-	//Microsoft::WRL::ComPtr<ID3D10Blob> vertexShaderBuffer;
+
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> depthStencilBuffer;
+	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> depthStencilView;
+	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> depthStencilState;
 };

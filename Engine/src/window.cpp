@@ -14,9 +14,11 @@ Window::Window(InputStream& outInputStream)
 	RECT windowRect{0, 0, 1280, 720};
 	AdjustWindowRect(&windowRect, windowStyle, /*bMenu=*/ false);
 
-	handle = CreateWindow(WindowClass::getClassName(), L"Game Title Caption Text", windowStyle,
+	handle = CreateWindow(
+		WindowClass::getClassName(), L"Game Title Caption Text", windowStyle,
 		CW_USEDEFAULT, CW_USEDEFAULT, windowRect.right, windowRect.bottom,
-		nullptr, nullptr, WindowClass::getInstance(), &outInputStream);
+		nullptr, nullptr, WindowClass::getInstance(), &outInputStream
+	);
 
 	ShowWindow(handle, SW_SHOW);
 }
@@ -53,7 +55,10 @@ Window::ClientSize Window::getClientSize() const
 {
 	RECT clientRect;
 	GetClientRect(handle, &clientRect);
-	return {static_cast<UINT>(clientRect.right) - clientRect.left, static_cast<UINT>(clientRect.bottom) - clientRect.top};
+	return {
+		static_cast<UINT>(clientRect.right) - clientRect.left,
+		static_cast<UINT>(clientRect.bottom) - clientRect.top
+	};
 }
 
 LRESULT CALLBACK Window::setupWindowProcess(HWND windowHandle, UINT message, WPARAM wParam, LPARAM lParam)
