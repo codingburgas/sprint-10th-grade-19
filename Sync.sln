@@ -9,16 +9,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Engine", "Engine\Engine.vcx
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|x64 = Debug|x64
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{8A8FDF93-A616-4E1B-9D39-02EAEFC94BE9}.Debug|x64.ActiveCfg = Debug|x64
-		{8A8FDF93-A616-4E1B-9D39-02EAEFC94BE9}.Debug|x64.Build.0 = Debug|x64
 		{8A8FDF93-A616-4E1B-9D39-02EAEFC94BE9}.Release|x64.ActiveCfg = Release|x64
 		{8A8FDF93-A616-4E1B-9D39-02EAEFC94BE9}.Release|x64.Build.0 = Release|x64
-		{478F902C-DCDC-4563-9AC4-42B89E9BA66D}.Debug|x64.ActiveCfg = Debug|x64
-		{478F902C-DCDC-4563-9AC4-42B89E9BA66D}.Debug|x64.Build.0 = Debug|x64
 		{478F902C-DCDC-4563-9AC4-42B89E9BA66D}.Release|x64.ActiveCfg = Release|x64
 		{478F902C-DCDC-4563-9AC4-42B89E9BA66D}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection

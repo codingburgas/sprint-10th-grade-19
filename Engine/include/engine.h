@@ -1,12 +1,11 @@
 #pragma once
 
-#include <wrl/client.h>
 #include <d3d11.h>
 #include <dxgi.h>
-#include <Effects.h>
-#include <VertexTypes.h>
-#include <PrimitiveBatch.h>
+#include <GeometricPrimitive.h>//
+#include <wrl/client.h>
 #include "window.h"
+#include "camera.h"//
 
 class Engine
 {
@@ -31,12 +30,14 @@ private:
 
 	Microsoft::WRL::ComPtr<ID3D11Device> device;
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext> deviceContext;
+
 	Microsoft::WRL::ComPtr<IDXGISwapChain> swapChain;
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> renderTargetView;
-	Microsoft::WRL::ComPtr<ID3D11InputLayout> inputLayout;
-	DirectX::BasicEffect* effect = nullptr;
-	DirectX::PrimitiveBatch<DirectX::VertexPositionColor>* primitiveBatch = nullptr;
 
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> depthStencilView;
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> depthStencilState;
+
+	std::unique_ptr<DirectX::GeometricPrimitive> shape;
+	DirectX::SimpleMath::Matrix shapeWorldMatrix;
+	Camera* camera = nullptr;
 };

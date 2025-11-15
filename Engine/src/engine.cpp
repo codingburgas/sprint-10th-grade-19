@@ -25,7 +25,7 @@ Engine::Engine()
 	D3D11CreateDeviceAndSwapChain(
 		nullptr, // use default video adapter
 		D3D_DRIVER_TYPE_HARDWARE,
-		nullptr, // not using software rasterizer
+		nullptr, // use hardware rasterizer
 		D3D11_CREATE_DEVICE_SINGLETHREADED,
 		nullptr, // use default feature levels
 		0, // custom feature level count
@@ -34,8 +34,10 @@ Engine::Engine()
 		swapChain.ReleaseAndGetAddressOf(),
 		device.ReleaseAndGetAddressOf(),
 		nullptr, // outChosenFeatureLevel
-		deviceContext.ReleaseAndGetAddressOf());
+		deviceContext.ReleaseAndGetAddressOf()
+	);
 
+	camera = new Camera(clientSize.width, clientSize.height);
 	updateSizeDependentResources(clientSize.width, clientSize.height);
 	window.overrideWindowProcess(windowProcess);
 
@@ -84,20 +86,13 @@ void Engine::updateSizeDependentResources(UINT width, UINT height)
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> depthStencilBuffer;
 	device->CreateTexture2D(&depthStencilBufferDescription, nullptr, depthStencilBuffer.ReleaseAndGetAddressOf());
 	device->CreateDepthStencilView(depthStencilBuffer.Get(), nullptr, depthStencilView.ReleaseAndGetAddressOf());
-
+	
 	deviceContext->OMSetRenderTargets(1, renderTargetView.GetAddressOf(), depthStencilView.Get());
 
-Engine::~Engine()
-{
-	delete primitiveBatch;
-	delete effect;
-}
 	D3D11_VIEWPORT viewport{0, 0, width, height, 0, 1};
 	deviceContext->RSSetViewports(1, &viewport);
 
-bool Engine::processMessage()
-{
-	return window.dispatchMessage();
+	camera->updateAspectRatio(width, height);
 }
 
 void Engine::renderFrame()
@@ -105,18 +100,7 @@ void Engine::renderFrame()
 	deviceContext->ClearRenderTargetView(renderTargetView.Get(), DirectX::Colors::CornflowerBlue);
 	deviceContext->ClearDepthStencilView(depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 0);
 
-	primitiveBatch->Begin();
-	primitiveBatch->DrawTriangle(
-		{{0, 0.2, 1}, DirectX::Colors::Lavender},
-		{{0.2, 0, 1}, DirectX::Colors::Lavender},
-		{{-0.2, 0, 1}, DirectX::Colors::Lavender}
-	);
-	primitiveBatch->DrawTriangle(
-		{{0, 0.3, 0}, DirectX::Colors::LawnGreen},
-		{{0.1, 0.1, 0}, DirectX::Colors::LawnGreen},
-		{{-0.1, 0.1, 0}, DirectX::Colors::LawnGreen}
-	);
-	primitiveBatch->End();
+	shape->Draw(shapeWorldMatrix, camera->getViewMatrix(), camera->getProjectionMatrix());
 
 	swapChain->Present(0, 0);
 }
