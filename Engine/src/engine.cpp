@@ -3,9 +3,8 @@
 #include <DirectXHelpers.h>
 
 Engine::Engine()
-	: window(inputStream)
 {
-	Window::ClientSize clientSize = window.getClientSize();
+	Window::ClientSize clientSize = window.getInitialClientSize();
 
 	DXGI_SWAP_CHAIN_DESC swapChainDescription{};
 	swapChainDescription.BufferDesc.Width = clientSize.width;
@@ -37,24 +36,44 @@ Engine::Engine()
 		nullptr, // outChosenFeatureLevel
 		deviceContext.ReleaseAndGetAddressOf());
 
+	updateSizeDependentResources(clientSize.width, clientSize.height);
+	window.overrideWindowProcess(windowProcess);
+
+	D3D11_DEPTH_STENCIL_DESC depthStencilDescription{};
+	depthStencilDescription.DepthEnable = true;
+	depthStencilDescription.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	depthStencilDescription.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+	device->CreateDepthStencilState(&depthStencilDescription, depthStencilState.ReleaseAndGetAddressOf());
+	deviceContext->OMSetDepthStencilState(depthStencilState.Get(), 0);
+
+	shape = DirectX::GeometricPrimitive::CreateBox(deviceContext.Get(), {2, 3, 1});
+	shapeWorldMatrix = DirectX::SimpleMath::Matrix::CreateWorld({0, 0, -5}, DirectX::SimpleMath::Vector3::Forward, DirectX::SimpleMath::Vector3::Up);
+}
+
+Engine::~Engine()
+{
+	delete camera;
+}
+
+void Engine::updateSizeDependentResources(UINT width, UINT height)
+{
+	renderTargetView.Reset();
+	depthStencilView.Reset();
+
+	swapChain->ResizeBuffers(
+		0, // keep existing count
+		width, height,
+		DXGI_FORMAT_UNKNOWN, // keep existing format
+		DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH
+	);
+
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> backBuffer;
 	swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(backBuffer.ReleaseAndGetAddressOf()));
-
 	device->CreateRenderTargetView(backBuffer.Get(), nullptr, renderTargetView.ReleaseAndGetAddressOf());
 
-	effect = new DirectX::BasicEffect(device.Get());
-	effect->SetVertexColorEnabled(true);
-	effect->Apply(deviceContext.Get());
-
-	DirectX::CreateInputLayoutFromEffect<DirectX::VertexPositionColor>(device.Get(), effect, inputLayout.ReleaseAndGetAddressOf());
-	deviceContext->IASetInputLayout(inputLayout.Get());
-
-	D3D11_VIEWPORT viewport{0, 0, clientSize.width, clientSize.height, 0, 1};
-	deviceContext->RSSetViewports(1, &viewport);
-
 	D3D11_TEXTURE2D_DESC depthStencilBufferDescription{};
-	depthStencilBufferDescription.Width = clientSize.width;
-	depthStencilBufferDescription.Height = clientSize.height;
+	depthStencilBufferDescription.Width = width;
+	depthStencilBufferDescription.Height = height;
 	depthStencilBufferDescription.MipLevels = 1;
 	depthStencilBufferDescription.ArraySize = 1;
 	depthStencilBufferDescription.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
@@ -62,25 +81,19 @@ Engine::Engine()
 	depthStencilBufferDescription.SampleDesc.Quality = 0;
 	depthStencilBufferDescription.Usage = D3D11_USAGE_DEFAULT;
 	depthStencilBufferDescription.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-	D3D11_DEPTH_STENCIL_DESC depthStencilDescription{};
-	depthStencilDescription.DepthEnable = true;
-	depthStencilDescription.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-	depthStencilDescription.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> depthStencilBuffer;
 	device->CreateTexture2D(&depthStencilBufferDescription, nullptr, depthStencilBuffer.ReleaseAndGetAddressOf());
 	device->CreateDepthStencilView(depthStencilBuffer.Get(), nullptr, depthStencilView.ReleaseAndGetAddressOf());
-	device->CreateDepthStencilState(&depthStencilDescription, depthStencilState.ReleaseAndGetAddressOf());
 
 	deviceContext->OMSetRenderTargets(1, renderTargetView.GetAddressOf(), depthStencilView.Get());
-	deviceContext->OMSetDepthStencilState(depthStencilState.Get(), 0);
-
-	primitiveBatch = new DirectX::PrimitiveBatch<DirectX::VertexPositionColor>(deviceContext.Get());
-}
 
 Engine::~Engine()
 {
 	delete primitiveBatch;
 	delete effect;
 }
+	D3D11_VIEWPORT viewport{0, 0, width, height, 0, 1};
+	deviceContext->RSSetViewports(1, &viewport);
 
 bool Engine::processMessage()
 {
@@ -106,4 +119,28 @@ void Engine::renderFrame()
 	primitiveBatch->End();
 
 	swapChain->Present(0, 0);
+}
+
+LRESULT Engine::windowProcess(HWND windowHandle, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	switch (message)
+	{
+	case WM_SIZE:
+		Engine::getInstance().updateSizeDependentResources(LOWORD(lParam), HIWORD(lParam));
+		break;
+	}
+
+	return DefWindowProc(windowHandle, message, wParam, lParam);
+}
+
+Engine& Engine::getInstance()
+{
+	static Engine engine;
+
+	return engine;
+}
+
+bool Engine::processMessage()
+{
+	return window.dispatchMessage();
 }

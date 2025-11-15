@@ -11,18 +11,23 @@
 class Engine
 {
 public:
-	Engine();
-	~Engine();
-	Engine(const Engine&) = delete;
-	Engine& operator=(const Engine&) = delete;
+	static Engine& getInstance();
 
 	bool processMessage();
 
 	void renderFrame();
 
 private:
+	Engine();
+	~Engine();
+	Engine(const Engine&) = delete;
+	Engine& operator=(const Engine&) = delete;
+
 	Window window;
-	Window::InputStream inputStream;
+	static LRESULT CALLBACK windowProcess(HWND, UINT message, WPARAM, LPARAM);
+
+	// (Re)creates resources which depend on window client size.
+	void updateSizeDependentResources(UINT width, UINT height);
 
 	Microsoft::WRL::ComPtr<ID3D11Device> device;
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext> deviceContext;
@@ -32,7 +37,6 @@ private:
 	DirectX::BasicEffect* effect = nullptr;
 	DirectX::PrimitiveBatch<DirectX::VertexPositionColor>* primitiveBatch = nullptr;
 
-	Microsoft::WRL::ComPtr<ID3D11Texture2D> depthStencilBuffer;
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> depthStencilView;
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> depthStencilState;
 };

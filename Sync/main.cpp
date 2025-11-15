@@ -8,7 +8,7 @@ int CALLBACK WinMain(
 	_In_ int nShowCmd
 )
 {
-	Engine engine;
+	Engine& engine = Engine::getInstance();
 
 	while (engine.processMessage())
 	{
