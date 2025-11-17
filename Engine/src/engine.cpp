@@ -1,6 +1,8 @@
 #include "engine.h"
 #include <DirectXColors.h>
 #include <DirectXHelpers.h>
+#include <Keyboard.h>
+#include <Mouse.h>
 
 Engine::Engine()
 {
@@ -102,6 +104,7 @@ void Engine::beginDraw()
 {
 	deviceContext->ClearRenderTargetView(renderTargetView.Get(), DirectX::Colors::CornflowerBlue);
 	deviceContext->ClearDepthStencilView(depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 0);
+}
 
 void Engine::endDraw()
 {
@@ -115,6 +118,36 @@ LRESULT Engine::windowProcess(HWND windowHandle, UINT message, WPARAM wParam, LP
 	case WM_SIZE:
 		Engine::getInstance().updateSizeDependentResources(LOWORD(lParam), HIWORD(lParam));
 		break;
+
+	case WM_ACTIVATE:
+	case WM_ACTIVATEAPP:
+		DirectX::Keyboard::ProcessMessage(message, wParam, lParam);
+		DirectX::Mouse::ProcessMessage(message, wParam, lParam);
+		break;
+
+	case WM_INPUT:
+	case WM_MOUSEMOVE:
+	case WM_LBUTTONDOWN:
+	case WM_LBUTTONUP:
+	case WM_RBUTTONDOWN:
+	case WM_RBUTTONUP:
+	case WM_MBUTTONDOWN:
+	case WM_MBUTTONUP:
+	case WM_MOUSEWHEEL:
+	case WM_MOUSEHOVER:
+		DirectX::Mouse::ProcessMessage(message, wParam, lParam);
+		break;
+
+	case WM_KEYDOWN:
+	case WM_KEYUP:
+	case WM_SYSKEYDOWN:
+	case WM_SYSKEYUP:
+		DirectX::Keyboard::ProcessMessage(message, wParam, lParam);
+		break;
+
+	// Don't register click if window wasn't focused
+	case WM_MOUSEACTIVATE:
+		return MA_ACTIVATEANDEAT;
 	}
 
 	return DefWindowProc(windowHandle, message, wParam, lParam);
