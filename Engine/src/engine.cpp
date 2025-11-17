@@ -37,7 +37,6 @@ Engine::Engine()
 		deviceContext.ReleaseAndGetAddressOf()
 	);
 
-	camera = new Camera(clientSize.width, clientSize.height);
 	updateSizeDependentResources(clientSize.width, clientSize.height);
 	window.overrideWindowProcess(windowProcess);
 
@@ -47,14 +46,6 @@ Engine::Engine()
 	depthStencilDescription.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
 	device->CreateDepthStencilState(&depthStencilDescription, depthStencilState.ReleaseAndGetAddressOf());
 	deviceContext->OMSetDepthStencilState(depthStencilState.Get(), 0);
-
-	shape = DirectX::GeometricPrimitive::CreateBox(deviceContext.Get(), {2, 3, 1});
-	shapeWorldMatrix = DirectX::SimpleMath::Matrix::CreateWorld({0, 0, -5}, DirectX::SimpleMath::Vector3::Forward, DirectX::SimpleMath::Vector3::Up);
-}
-
-Engine::~Engine()
-{
-	delete camera;
 }
 
 void Engine::updateSizeDependentResources(UINT width, UINT height)
@@ -92,16 +83,28 @@ void Engine::updateSizeDependentResources(UINT width, UINT height)
 	D3D11_VIEWPORT viewport{0, 0, width, height, 0, 1};
 	deviceContext->RSSetViewports(1, &viewport);
 
-	camera->updateAspectRatio(width, height);
+	camera.updateAspectRatio(width, height);
 }
 
-void Engine::renderFrame()
+std::unique_ptr<DirectX::GeometricPrimitive> Engine::makeGeometricPrimitive(const DirectX::GeometricPrimitive::VertexCollection& vertices, const DirectX::GeometricPrimitive::IndexCollection& indices)
+{
+	return DirectX::GeometricPrimitive::CreateCustom(deviceContext.Get(), vertices, indices);
+}
+
+void Engine::renderFrame(std::function<void(ID3D11DeviceContext*)> drawFrame)
+{
+	beginDraw();
+	drawFrame(deviceContext.Get());
+	endDraw();
+}
+
+void Engine::beginDraw()
 {
 	deviceContext->ClearRenderTargetView(renderTargetView.Get(), DirectX::Colors::CornflowerBlue);
 	deviceContext->ClearDepthStencilView(depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 0);
 
-	shape->Draw(shapeWorldMatrix, camera->getViewMatrix(), camera->getProjectionMatrix());
-
+void Engine::endDraw()
+{
 	swapChain->Present(0, 0);
 }
 
@@ -127,4 +130,9 @@ Engine& Engine::getInstance()
 bool Engine::processMessage()
 {
 	return window.dispatchMessage();
+}
+
+Camera& Engine::getCamera()
+{
+	return camera;
 }

@@ -1,15 +1,23 @@
 #include "camera.h"
 
-Camera::Camera(float clientWidth, float clientHeight, float viewDistance/*=10*/)
+Camera::Camera(float clientWidth, float clientHeight, DirectX::SimpleMath::Vector3 initialPosition, float viewDistance)
 	: viewDistance(viewDistance)
+	, position(initialPosition)
+	, yaw(0)
 {
-	viewMatrix = DirectX::SimpleMath::Matrix::CreateLookAt(
-		DirectX::SimpleMath::Vector3::Zero, // initial camera position
-		DirectX::SimpleMath::Vector3::Forward, // look at position
-		DirectX::SimpleMath::Vector3::Up // up vector
-	);
-
+	updateView();
 	updateAspectRatio(clientWidth, clientHeight);
+}
+
+void Camera::updateView()
+{
+	
+
+	viewMatrix = DirectX::SimpleMath::Matrix::CreateLookAt(
+		position,
+		{cosf(yaw), 0, -sinf(yaw)},
+		DirectX::SimpleMath::Vector3::Up
+	);
 }
 
 void Camera::updateAspectRatio(float newWidth, float newHeight)
@@ -19,6 +27,37 @@ void Camera::updateAspectRatio(float newWidth, float newHeight)
 		newWidth / newHeight,
 		0.1, viewDistance // near and far Z-plane
 	);
+}
+
+void Camera::adjustPositionAndYaw(const DirectX::SimpleMath::Vector3& posAdjustments, float yawAdjustment)
+{
+	position += posAdjustments;
+	yaw += yawAdjustment;
+	updateView();
+}
+
+void Camera::adjustYaw(float units)
+{
+	yaw += units;
+	updateView();
+}
+
+void Camera::setYaw(float radians)
+{
+	yaw = radians;
+	updateView();
+}
+
+void Camera::adjustPosition(const DirectX::SimpleMath::Vector3& adjustments)
+{
+	position += adjustments;
+	updateView();
+}
+
+void Camera::setPosition(const DirectX::SimpleMath::Vector3& newPosition)
+{
+	position = newPosition;
+	updateView();
 }
 
 DirectX::CXMMATRIX Camera::getViewMatrix() const
