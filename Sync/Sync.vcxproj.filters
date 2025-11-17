@@ -1,9 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="main.cpp" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\maze.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\maze.h" />
   </ItemGroup>
 </Project>

@@ -6,7 +6,7 @@ Window::WindowClass Window::WindowClass::windowClass;
 
 Window::Window()
 	: windowStyle(WS_OVERLAPPEDWINDOW)
-	, initialClientSize(800, 600)
+	, initialClientSize(1280, 720)
 {
 	RECT windowRect{0, 0, initialClientSize.width, initialClientSize.height};
 	AdjustWindowRect(&windowRect, windowStyle, /*bMenu=*/ false);
