@@ -2,10 +2,8 @@
 
 ## 📚 Documentation and Presentation
 
-- [📄 Project Documentation](link-to-doc)
-- [📊 Presentation Slides](link-to-ppt)
 - [Documentation]()
-- [Presentation]()
+- [Presentation](https://codingburgas-my.sharepoint.com/:p:/g/personal/pvstojkov23_codingburgas_bg/IQC1HCH6POA0SIvyvBKRTuYQAT8Ha22aFa_9aLuxl0DFRuM?e=3hn0Yo)
 
 
 ## 👥 Team
