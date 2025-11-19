@@ -1,4 +1,7 @@
 #include "engine.h"
+#include <imgui.h>
+#include <imgui_impl_dx11.h>
+#include <imgui_impl_win32.h>
 #include <DirectXColors.h>
 #include <DirectXHelpers.h>
 #include <Keyboard.h>
@@ -48,6 +51,20 @@ Engine::Engine()
 	depthStencilDescription.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
 	device->CreateDepthStencilState(&depthStencilDescription, depthStencilState.ReleaseAndGetAddressOf());
 	deviceContext->OMSetDepthStencilState(depthStencilState.Get(), 0);
+
+	ImGui::CreateContext();
+	ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+	ImGui::StyleColorsDark();
+
+	ImGui_ImplWin32_Init(window.getHandle());
+	ImGui_ImplDX11_Init(device.Get(), deviceContext.Get());
+}
+
+Engine::~Engine()
+{
+	ImGui_ImplDX11_Shutdown();
+	ImGui_ImplWin32_Shutdown();
+	ImGui::DestroyContext();
 }
 
 void Engine::updateSizeDependentResources(UINT width, UINT height)
@@ -79,7 +96,7 @@ void Engine::updateSizeDependentResources(UINT width, UINT height)
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> depthStencilBuffer;
 	device->CreateTexture2D(&depthStencilBufferDescription, nullptr, depthStencilBuffer.ReleaseAndGetAddressOf());
 	device->CreateDepthStencilView(depthStencilBuffer.Get(), nullptr, depthStencilView.ReleaseAndGetAddressOf());
-	
+
 	deviceContext->OMSetRenderTargets(1, renderTargetView.GetAddressOf(), depthStencilView.Get());
 
 	D3D11_VIEWPORT viewport{0, 0, width, height, 0, 1};
@@ -93,26 +110,50 @@ std::unique_ptr<DirectX::GeometricPrimitive> Engine::makeGeometricPrimitive(cons
 	return DirectX::GeometricPrimitive::CreateCustom(deviceContext.Get(), vertices, indices);
 }
 
-void Engine::renderFrame(std::function<void(ID3D11DeviceContext*)> drawFrame)
+void Engine::render3DFrame(std::function<void(ID3D11DeviceContext*)> draw3DFrame)
 {
-	beginDraw();
-	drawFrame(deviceContext.Get());
-	endDraw();
+	clearViews();
+	draw3DFrame(deviceContext.Get());
+	presentDrawnFrame();
 }
 
-void Engine::beginDraw()
+void Engine::clearViews()
 {
 	deviceContext->ClearRenderTargetView(renderTargetView.Get(), DirectX::Colors::CornflowerBlue);
 	deviceContext->ClearDepthStencilView(depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 0);
 }
 
-void Engine::endDraw()
+void Engine::presentDrawnFrame()
 {
 	swapChain->Present(0, 0);
 }
 
+void Engine::renderGui(std::function<void()> drawGui)
+{
+	beginGuiDraw();
+	drawGui();
+	endGuiDraw();
+}
+
+void Engine::beginGuiDraw()
+{
+	ImGui_ImplDX11_NewFrame();
+	ImGui_ImplWin32_NewFrame();
+	ImGui::NewFrame();
+}
+
+void Engine::endGuiDraw()
+{
+	ImGui::Render();
+	clearViews();
+	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+	presentDrawnFrame();
+}
+
 LRESULT Engine::windowProcess(HWND windowHandle, UINT message, WPARAM wParam, LPARAM lParam)
 {
+	ImGui_ImplWin32_WndProcHandler(windowHandle, message, wParam, lParam);
+
 	switch (message)
 	{
 	case WM_SIZE:
@@ -160,9 +201,9 @@ Engine& Engine::getInstance()
 	return engine;
 }
 
-bool Engine::processMessage()
+bool Engine::processMessages()
 {
-	return window.dispatchMessage();
+	return window.dispatchMessages();
 }
 
 Camera& Engine::getCamera()

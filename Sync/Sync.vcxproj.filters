@@ -6,8 +6,12 @@
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\maze.cpp" />
+    <ClCompile Include="src\game.cpp" />
+    <ClCompile Include="src\player.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\maze.h" />
+    <ClInclude Include="include\game.h" />
+    <ClInclude Include="include\player.h" />
   </ItemGroup>
 </Project>

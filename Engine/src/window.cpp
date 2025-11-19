@@ -20,7 +20,7 @@ Window::Window()
 	ShowWindow(handle, SW_SHOW);
 }
 
-bool Window::dispatchMessage()
+bool Window::dispatchMessages()
 {
 	MSG message{};
 

@@ -1,12 +1,12 @@
 #pragma once
 
-#include <d3d11.h>
-#include <dxgi.h>
-#include <functional>
-#include <GeometricPrimitive.h>
-#include <wrl/client.h>
 #include "camera.h"
 #include "window.h"
+#include <GeometricPrimitive.h>
+#include <d3d11.h>
+#include <dxgi.h>
+#include <wrl/client.h>
+#include <functional>
 
 class Engine
 {
@@ -14,11 +14,15 @@ public:
 	static Engine& getInstance();
 
 	// Processes window input. Determines whether to continue execution.
-	bool processMessage();
+	bool processMessages();
 
-	// Sets up and presents a frame which the user draws.
+	// Sets up and presents a 3D frame which the user draws.
 	// The user draws the frame by passing in a function with draw calls.
-	void renderFrame(std::function<void(ID3D11DeviceContext*)> drawFrame);
+	void render3DFrame(std::function<void(ID3D11DeviceContext*)> draw3DFrame);
+
+	// Sets up and presents a 2D GUI which the user draws.
+	// The user has to pass in a function with draw calls.
+	void renderGui(std::function<void()> drawGui);
 
 	std::unique_ptr<DirectX::GeometricPrimitive> makeGeometricPrimitive(const DirectX::GeometricPrimitive::VertexCollection&, const DirectX::GeometricPrimitive::IndexCollection&);
 
@@ -26,7 +30,7 @@ public:
 
 private:
 	Engine();
-	~Engine() = default;
+	~Engine();
 	Engine(const Engine&) = delete;
 	Engine& operator=(const Engine&) = delete;
 
@@ -36,8 +40,11 @@ private:
 	// (Re)creates resources which depend on window client size.
 	void updateSizeDependentResources(UINT width, UINT height);
 
-	void beginDraw(); // Sets up render surfaces for drawing.
-	void endDraw(); // Presents drawn content.
+	void clearViews(); // Makes sure views are empty before drawing.
+	void presentDrawnFrame(); // Presents drawn content.
+
+	void beginGuiDraw(); // Sets up frame for Dear ImGui drawing.
+	void endGuiDraw(); // Presents the drawn frame.
 
 	Microsoft::WRL::ComPtr<ID3D11Device> device;
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext> deviceContext;

@@ -13,7 +13,7 @@ public:
 	Window(const Window&) = delete;
 	Window& operator=(const Window&) = delete;
 
-	bool dispatchMessage();
+	bool dispatchMessages();
 
 	HWND getHandle() const;
 
