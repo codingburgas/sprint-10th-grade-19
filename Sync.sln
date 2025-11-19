@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Sync", "Sync\Sync.vcxproj",
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Engine", "Engine\Engine.vcxproj", "{478F902C-DCDC-4563-9AC4-42B89E9BA66D}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Tests", "Tests\Tests.vcxproj", "{325ECB3A-23DB-C347-4BB0-D4DBF98485C4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Release|x64 = Release|x64
@@ -16,6 +18,8 @@ Global
 		{8A8FDF93-A616-4E1B-9D39-02EAEFC94BE9}.Release|x64.Build.0 = Release|x64
 		{478F902C-DCDC-4563-9AC4-42B89E9BA66D}.Release|x64.ActiveCfg = Release|x64
 		{478F902C-DCDC-4563-9AC4-42B89E9BA66D}.Release|x64.Build.0 = Release|x64
+		{325ECB3A-23DB-C347-4BB0-D4DBF98485C4}.Release|x64.ActiveCfg = Release|x64
+		{325ECB3A-23DB-C347-4BB0-D4DBF98485C4}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
