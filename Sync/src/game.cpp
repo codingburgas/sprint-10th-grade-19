@@ -1,14 +1,20 @@
 #include "game.h"
 #include "camera.h"
+#include <d3d11.h>
+#include <imgui.h>
 
 Game::Game()
 	: engine(Engine::getInstance())
 	, player(engine.getCamera())
+	, gameState(State::MainMenu)
+	, mazeWidth(10)
+	, mazeHeight(10)
 {
 	DirectX::GeometricPrimitive::VertexCollection wallVertices;
 	DirectX::GeometricPrimitive::IndexCollection wallIndices;
 	DirectX::GeometricPrimitive::CreateBox(wallVertices, wallIndices, { 4, 3, 0 });
 	wall = Engine::getInstance().makeGeometricPrimitive(wallVertices, wallIndices);
+	ImGui::GetIO().Fonts->AddFontFromFileTTF("resources\\Fruktur-Regular.ttf");
 }
 
 void Game::begin()
@@ -29,8 +35,24 @@ void Game::update()
 
 void Game::draw()
 {
-	engine.renderFrame([this]()
+	switch (gameState)
 	{
-		wall->Draw(DirectX::SimpleMath::Matrix::CreateWorld({ 0, 0, -2 }, { 0, 0, -1 }, { 0, 1, 0 }), player.getViewMatrix(), player.getProjectionMatrix());
-	});
+	case State::MainMenu:
+		engine.renderGui([]()
+		{
+			ImGui::SetWindowSize(ImGui::GetWindowSize());
+			ImGui::Begin("", nullptr, ImGuiWindowFlags_NoDecoration);
+			if (ImGui::Button("Start"))
+			{
+				maze = Maze(width, height);
+				gameState = State::Maze;
+			}
+			ImGui::End();
+		});
+		break;
+
+	case State::Maze:
+		maze.draw();
+		break;
+	}
 }

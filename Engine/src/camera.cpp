@@ -11,8 +11,6 @@ Camera::Camera(float clientWidth, float clientHeight, DirectX::SimpleMath::Vecto
 
 void Camera::updateView()
 {
-	
-
 	viewMatrix = DirectX::SimpleMath::Matrix::CreateLookAt(
 		position,
 		{cosf(yaw), 0, -sinf(yaw)},
@@ -29,14 +27,14 @@ void Camera::updateAspectRatio(float newWidth, float newHeight)
 	);
 }
 
-void Camera::adjustPositionAndYaw(const DirectX::SimpleMath::Vector3& posAdjustments, float yawAdjustment)
+void Camera::adjustPositionAndYaw(const DirectX::SimpleMath::Vector3& posAdjustments, int yawAdjustment)
 {
 	position += posAdjustments;
 	yaw += yawAdjustment;
 	updateView();
 }
 
-void Camera::adjustYaw(float units)
+void Camera::adjustYaw(int units)
 {
 	yaw += units;
 	updateView();

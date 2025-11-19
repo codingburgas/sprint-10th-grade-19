@@ -2,6 +2,7 @@
 
 #include "engine.h"
 #include "player.h"
+#include "maze.h"
 
 class Game
 {
@@ -14,10 +15,18 @@ private:
 	Game(const Game&) = delete;
 	Game& operator=(const Game&) = delete;
 
+	enum class State
+	{
+		MainMenu,
+		Maze
+	} gameState;
+
 	void update();
 	void draw();
 
 	Engine& engine;
 	Player player;
-	std::unique_ptr<DirectX::GeometricPrimitive> wall;
+	Maze maze;
+
+	size_t mazeWidth, mazeHeight;
 };

@@ -14,12 +14,12 @@ public:
 		float viewDistance = 10
 	);
 
-	void adjustPositionAndYaw(const DirectX::SimpleMath::Vector3& posAdjustments, float yawAdjustment);
+	void adjustPositionAndYaw(const DirectX::SimpleMath::Vector3& posAdjustments, int yawAdjustment);
 
 	void adjustPosition(const DirectX::SimpleMath::Vector3& adjustments);
 	void setPosition(const DirectX::SimpleMath::Vector3& newPosition);
 
-	void adjustYaw(float units);
+	void adjustYaw(int units);
 	void setYaw(float radians);
 
 	DirectX::CXMMATRIX getViewMatrix() const;
