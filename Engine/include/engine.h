@@ -3,6 +3,8 @@
 #include "camera.h"
 #include "window.h"
 #include <GeometricPrimitive.h>
+#include <Keyboard.h>
+#include <Mouse.h>
 #include <d3d11.h>
 #include <dxgi.h>
 #include <wrl/client.h>
@@ -24,6 +26,9 @@ public:
 	// The user has to pass in a function with draw calls.
 	void renderGui(std::function<void()> drawGui);
 
+	DirectX::Keyboard& getKeyboard();
+	DirectX::Mouse& getMouse();
+	void makeTexture(LPCWSTR filepath, ID3D11ShaderResourceView** texture);
 	std::unique_ptr<DirectX::GeometricPrimitive> makeGeometricPrimitive(const DirectX::GeometricPrimitive::VertexCollection&, const DirectX::GeometricPrimitive::IndexCollection&);
 
 	Camera& getCamera();
@@ -54,6 +59,9 @@ private:
 
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> depthStencilView;
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> depthStencilState;
+
+	DirectX::Keyboard* keyboard = nullptr;
+	DirectX::Mouse* mouse = nullptr;
 
 	Camera camera;
 };

@@ -4,8 +4,9 @@
 #include <imgui_impl_win32.h>
 #include <DirectXColors.h>
 #include <DirectXHelpers.h>
-#include <Keyboard.h>
-#include <Mouse.h>
+#include <WICTextureLoader.h>
+
+extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND, UINT, WPARAM, LPARAM);
 
 Engine::Engine()
 {
@@ -52,6 +53,10 @@ Engine::Engine()
 	device->CreateDepthStencilState(&depthStencilDescription, depthStencilState.ReleaseAndGetAddressOf());
 	deviceContext->OMSetDepthStencilState(depthStencilState.Get(), 0);
 
+	mouse = new DirectX::Mouse;
+	keyboard = new DirectX::Keyboard;
+	mouse->SetWindow(window.getHandle());
+
 	ImGui::CreateContext();
 	ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 	ImGui::StyleColorsDark();
@@ -65,6 +70,16 @@ Engine::~Engine()
 	ImGui_ImplDX11_Shutdown();
 	ImGui_ImplWin32_Shutdown();
 	ImGui::DestroyContext();
+}
+
+DirectX::Keyboard& Engine::getKeyboard()
+{
+	return *keyboard;
+}
+
+DirectX::Mouse& Engine::getMouse()
+{
+	return *mouse;
 }
 
 void Engine::updateSizeDependentResources(UINT width, UINT height)
@@ -108,6 +123,11 @@ void Engine::updateSizeDependentResources(UINT width, UINT height)
 std::unique_ptr<DirectX::GeometricPrimitive> Engine::makeGeometricPrimitive(const DirectX::GeometricPrimitive::VertexCollection& vertices, const DirectX::GeometricPrimitive::IndexCollection& indices)
 {
 	return DirectX::GeometricPrimitive::CreateCustom(deviceContext.Get(), vertices, indices);
+}
+
+void Engine::makeTexture(LPCWSTR filepath, ID3D11ShaderResourceView** texture)
+{
+	DirectX::CreateWICTextureFromFile(device.Get(), filepath, nullptr, texture);
 }
 
 void Engine::render3DFrame(std::function<void(ID3D11DeviceContext*)> draw3DFrame)
@@ -185,10 +205,6 @@ LRESULT Engine::windowProcess(HWND windowHandle, UINT message, WPARAM wParam, LP
 	case WM_SYSKEYUP:
 		DirectX::Keyboard::ProcessMessage(message, wParam, lParam);
 		break;
-
-	// Don't register click if window wasn't focused
-	case WM_MOUSEACTIVATE:
-		return MA_ACTIVATEANDEAT;
 	}
 
 	return DefWindowProc(windowHandle, message, wParam, lParam);

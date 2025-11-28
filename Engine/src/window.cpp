@@ -12,7 +12,7 @@ Window::Window()
 	AdjustWindowRect(&windowRect, windowStyle, /*bMenu=*/ false);
 
 	handle = CreateWindow(
-		WindowClass::name, L"Game Title Caption Text", windowStyle,
+		WindowClass::name, L"Sync", windowStyle,
 		CW_USEDEFAULT, CW_USEDEFAULT, windowRect.right - windowRect.left, windowRect.bottom - windowRect.top,
 		nullptr, nullptr, WindowClass::executable, nullptr
 	);

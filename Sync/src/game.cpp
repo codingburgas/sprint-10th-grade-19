@@ -5,15 +5,12 @@
 
 Game::Game()
 	: engine(Engine::getInstance())
-	, player(engine.getCamera())
-	, gameState(State::MainMenu)
-	, mazeWidth(10)
-	, mazeHeight(10)
+	, gameState{State::MainMenu}
+	, player{nullptr}
+	, floors{nullptr, nullptr, nullptr}
+	, mazeWidth{10}
+	, mazeHeight{10}
 {
-	DirectX::GeometricPrimitive::VertexCollection wallVertices;
-	DirectX::GeometricPrimitive::IndexCollection wallIndices;
-	DirectX::GeometricPrimitive::CreateBox(wallVertices, wallIndices, { 4, 3, 0 });
-	wall = Engine::getInstance().makeGeometricPrimitive(wallVertices, wallIndices);
 	ImGui::GetIO().Fonts->AddFontFromFileTTF("resources\\Fruktur-Regular.ttf");
 }
 
@@ -28,9 +25,26 @@ void Game::begin()
 	}
 }
 
+void Game::beginMazeState()
+{
+	player = new Player(engine.getCamera(), engine.getKeyboard(), engine.getMouse());
+	floors[0] = new Maze(mazeWidth, mazeHeight);
+	gameState = State::Maze;
+}
+
+void Game::endMazeState()
+{
+	delete floors[0];
+	delete player;
+}
+
 void Game::update()
 {
-	player.update();
+	switch (gameState)
+	{
+	case State::Maze:
+		player->update();
+	}
 }
 
 void Game::draw()
@@ -38,21 +52,32 @@ void Game::draw()
 	switch (gameState)
 	{
 	case State::MainMenu:
-		engine.renderGui([]()
+		engine.renderGui([this]()
 		{
-			ImGui::SetWindowSize(ImGui::GetWindowSize());
-			ImGui::Begin("", nullptr, ImGuiWindowFlags_NoDecoration);
+			ImGui::SetNextWindowSize(ImGui::GetWindowSize());
+			ImGui::Begin("Main Menu", nullptr, ImGuiWindowFlags_NoDecoration);
+			ImGui::InputScalar("Width", ImGuiDataType_U64, &mazeWidth);
+			ImGui::InputScalar("Height", ImGuiDataType_U64, &mazeHeight);
 			if (ImGui::Button("Start"))
 			{
-				maze = Maze(width, height);
-				gameState = State::Maze;
+				beginMazeState();
 			}
 			ImGui::End();
 		});
 		break;
 
 	case State::Maze:
-		maze.draw();
+		engine.render3DFrame([this](ID3D11DeviceContext*) {
+
+floors[0]->draw(player->getCamera(), 0);
+//floors[]
+			});
+		/*engine.renderGui([this]() {
+			ImGui::Begin("Bedug", nullptr, ImGuiWindowFlags_NoDecoration);
+			ImGui::Text("%f", player->getCamera().getPos().y);
+			ImGui::End();
+			});*/
+		
 		break;
 	}
 }

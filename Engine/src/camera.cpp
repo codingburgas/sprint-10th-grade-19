@@ -11,11 +11,19 @@ Camera::Camera(float clientWidth, float clientHeight, DirectX::SimpleMath::Vecto
 
 void Camera::updateView()
 {
+	DirectX::SimpleMath::Vector3 forward = { sinf(yaw), 0, -cosf(yaw) };
+	forward.Normalize();
+
 	viewMatrix = DirectX::SimpleMath::Matrix::CreateLookAt(
 		position,
-		{cosf(yaw), 0, -sinf(yaw)},
+		position + forward,
 		DirectX::SimpleMath::Vector3::Up
 	);
+}
+
+DirectX::SimpleMath::Vector3 Camera::getPos() const
+{
+	return position;
 }
 
 void Camera::updateAspectRatio(float newWidth, float newHeight)
@@ -36,7 +44,7 @@ void Camera::adjustPositionAndYaw(const DirectX::SimpleMath::Vector3& posAdjustm
 
 void Camera::adjustYaw(int units)
 {
-	yaw += units;
+	yaw += units * 0.017;
 	updateView();
 }
 
@@ -46,9 +54,21 @@ void Camera::setYaw(float radians)
 	updateView();
 }
 
-void Camera::adjustPosition(const DirectX::SimpleMath::Vector3& adjustments)
+void Camera::adjustPosition(const DirectX::SimpleMath::Vector3& adjustments, bool up)
 {
-	position += adjustments;
+	if (up)
+	{
+		position.y += 0.0007;
+	}
+	else
+	{
+		DirectX::SimpleMath::Vector3 norm = { sinf(yaw), 0, -cosf(yaw) };
+		norm.Normalize();
+		position += 0.0007 * norm;
+	}
+	
+
+	
 	updateView();
 }
 
@@ -65,5 +85,5 @@ DirectX::CXMMATRIX Camera::getViewMatrix() const
 
 DirectX::CXMMATRIX Camera::getProjectionMatrix() const
 {
-	return projectionMatrix;
+	return projectionMatrix.operator DirectX::XMMATRIX();
 }

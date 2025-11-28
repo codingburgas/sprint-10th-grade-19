@@ -2,9 +2,13 @@
 
 #include <GeometricPrimitive.h>
 #include <DirectXMath.h>
+#include <d3d11.h>
+#include <wrl\client.h>
 #include <random>
 #include <type_traits>
 #include <cstdint>
+
+class Camera;
 
 // 3D maze using origin shift algorithm for generation.
 class Maze
@@ -13,7 +17,7 @@ public:
 	Maze(size_t gridWidth, size_t gridHeight);
 	~Maze();
 
-	void draw();
+	void draw(const Camera& camera, int floor);
 
 private:
 	size_t row, col;
@@ -44,7 +48,7 @@ private:
 	// Using the origin shift algorithm, generate a new maze given an initialized perfect maze.
 	// The origin is one cell which doesn't point to any other cells.
 	static void generateMaze(Cell** maze, size_t row, size_t col, size_t originRow, size_t originCol);
-	static bool isNewOriginOutOfBounds(Cell::Direction nextCell, size_t row, size_t col, size_t originRow, size_t originCol);
+	static bool isDirectionOutOfBounds(Cell::Direction nextCell, size_t row, size_t col, size_t i, size_t j);
 	static Cell::Walls getWallFacingDirection(Cell::Direction);
 	static Cell::Walls getWallOppositeDirection(Cell::Direction);
 	static Cell& getCellOffsetByDirection(Cell::Direction, Cell** maze, size_t i, size_t j);
@@ -52,7 +56,11 @@ private:
 	static std::uniform_int_distribution<> pickDirection;
 
 	const DirectX::XMFLOAT3 wallDimensions = {4, 3, 0};
+	const DirectX::XMFLOAT3 floorDimensions = {4, 4, 0};
 	std::unique_ptr<DirectX::GeometricPrimitive> wall;
+	std::unique_ptr<DirectX::GeometricPrimitive> floor;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> wallTexture;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> floorTexture;
 
 	friend constexpr Cell::Walls operator~(Cell::Walls);
 	friend constexpr Cell::Walls operator&(Cell::Walls, Cell::Walls);

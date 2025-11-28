@@ -1,30 +1,47 @@
 #include "player.h"
 #include "camera.h"
-#include <Mouse.h>
+#include <system_error>
 
-Player::Player(Camera& camera)
+Player::Player(Camera& camera, DirectX::Keyboard& keyboard, DirectX::Mouse& mouse)
 	: camera(camera)
-	, mouse(DirectX::Mouse::Get())
+	, keyboard(keyboard)
+	, mouse(mouse)
 {
-	mouse.SetMode(DirectX::Mouse::MODE_RELATIVE);
+	camera.setPosition({ -2, 2, -2 });
+		mouse.SetMode(DirectX::Mouse::MODE_RELATIVE);
+
+
+	
 }
 
 void Player::update()
 {
 	DirectX::Mouse::State mouseState = mouse.GetState();
+	DirectX::Keyboard::State keyboardState = keyboard.GetState();
 
 	if (mouseState.x != 0)
 	{
 		camera.adjustYaw(mouseState.x);
 	}
+	if (keyboardState.W)
+	{
+		camera.adjustPosition({0, 0, -1 * 0.0007}, 0);
+	}
+	if (keyboardState.A)
+	{
+		camera.adjustPosition({-1 * 0.0007, 0, 0}, 0);
+	}
+	if (keyboardState.Space)
+	{
+		camera.adjustPosition({0, 1 * 0.0007, 0}, 1);
+	}
+	if (keyboardState.D)
+	{
+		camera.adjustPosition({1 * 0.0007, 0, 0}, 0);
+	}
 }
 
-DirectX::CXMMATRIX Player::getViewMatrix()
+const Camera& Player::getCamera() const
 {
-	return camera.getViewMatrix();
-}
-
-DirectX::CXMMATRIX Player::getProjectionMatrix()
-{
-	return camera.getProjectionMatrix();
+	return camera;
 }

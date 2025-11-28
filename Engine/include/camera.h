@@ -11,12 +11,12 @@ public:
 		float clientWidth = 16,
 		float clientHeight = 9,
 		DirectX::SimpleMath::Vector3 initialPosition = DirectX::SimpleMath::Vector3::Zero,
-		float viewDistance = 10
+		float viewDistance = 100
 	);
 
 	void adjustPositionAndYaw(const DirectX::SimpleMath::Vector3& posAdjustments, int yawAdjustment);
 
-	void adjustPosition(const DirectX::SimpleMath::Vector3& adjustments);
+	void adjustPosition(const DirectX::SimpleMath::Vector3& adjustments, bool up);
 	void setPosition(const DirectX::SimpleMath::Vector3& newPosition);
 
 	void adjustYaw(int units);
@@ -27,7 +27,7 @@ public:
 
 	// Should be called when the window is resized.
 	void updateAspectRatio(float newWidth, float newHeight);
-
+	DirectX::SimpleMath::Vector3 getPos() const;
 private:
 	DirectX::SimpleMath::Matrix viewMatrix;
 	DirectX::SimpleMath::Matrix projectionMatrix;

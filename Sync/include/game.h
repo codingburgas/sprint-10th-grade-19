@@ -24,9 +24,12 @@ private:
 	void update();
 	void draw();
 
+	void beginMazeState();
+	void endMazeState();
+
 	Engine& engine;
-	Player player;
-	Maze maze;
+	Player* player;
+	Maze* floors[3];
 
 	size_t mazeWidth, mazeHeight;
 };

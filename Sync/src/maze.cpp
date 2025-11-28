@@ -1,4 +1,5 @@
 #include "maze.h"
+#include "camera.h"
 #include "engine.h"
 #include <algorithm>
 
@@ -28,10 +29,17 @@ Maze::Maze(size_t gridWidth, size_t gridHeight)
 	maze[row - 1][col - 1].nextCell = Cell::Direction::None;
 	generateMaze(maze, row, col, row - 1, col - 1);
 
-	DirectX::GeometricPrimitive::VertexCollection wallVertices;
-	DirectX::GeometricPrimitive::IndexCollection wallIndices;
-	DirectX::GeometricPrimitive::CreateBox(wallVertices, wallIndices, wallDimensions);
-	wall = Engine::getInstance().makeGeometricPrimitive(wallVertices, wallIndices);
+	DirectX::GeometricPrimitive::VertexCollection vertices;
+	DirectX::GeometricPrimitive::IndexCollection indices;
+
+	DirectX::GeometricPrimitive::CreateBox(vertices, indices, wallDimensions);
+	wall = Engine::getInstance().makeGeometricPrimitive(vertices, indices);
+	
+	DirectX::GeometricPrimitive::CreateBox(vertices, indices, floorDimensions);
+	floor = Engine::getInstance().makeGeometricPrimitive(vertices, indices);
+	
+	Engine::getInstance().makeTexture(L"resources\\wall.jpg", wallTexture.ReleaseAndGetAddressOf());
+	Engine::getInstance().makeTexture(L"resources\\floor.jpg", floorTexture.ReleaseAndGetAddressOf());
 }
 
 Maze::~Maze()
@@ -51,7 +59,7 @@ void Maze::generateMaze(Cell** maze, size_t row, size_t col, size_t originRow, s
 	{
 		randomDirection = static_cast<Cell::Direction>(pickDirection(rng));
 
-		if (isNewOriginOutOfBounds(randomDirection, row, col, originRow, originCol))
+		if (isDirectionOutOfBounds(randomDirection, row, col, originRow, originCol))
 		{
 			continue;
 		}
@@ -88,21 +96,128 @@ void Maze::generateMaze(Cell** maze, size_t row, size_t col, size_t originRow, s
 	}
 }
 
-bool Maze::isNewOriginOutOfBounds(Cell::Direction nextCell, size_t row, size_t col, size_t originRow, size_t originCol)
+void Maze::draw(const Camera& camera, int floorNumber)
+{
+	DirectX::SimpleMath::Matrix wallWorldMatrix;
+	DirectX::SimpleMath::Matrix floorWorldMatrix;
+
+	for (int i = 0; i < col; i++)
+	{
+		wallWorldMatrix = DirectX::SimpleMath::Matrix::CreateWorld(
+			{-i * wallDimensions.x - wallDimensions.x / 2, wallDimensions.y / 2, 0},
+			DirectX::SimpleMath::Vector3::Forward,
+			DirectX::SimpleMath::Vector3::Up
+		);
+		wall->Draw(wallWorldMatrix, camera.getViewMatrix(), camera.getProjectionMatrix(), DirectX::SimpleMath::Color(3, 3, 3), wallTexture.Get());
+	}
+	for (int i = 1; i < row - 1; i++)
+	{
+		wallWorldMatrix = DirectX::SimpleMath::Matrix::CreateWorld(
+			{0, wallDimensions.y / 2, -i * wallDimensions.x - wallDimensions.x / 2},
+			DirectX::SimpleMath::Vector3::Left,
+			DirectX::SimpleMath::Vector3::Up
+		);
+		wall->Draw(wallWorldMatrix, camera.getViewMatrix(), camera.getProjectionMatrix(), DirectX::SimpleMath::Color(3, 3, 3), wallTexture.Get());
+	}
+	for (int i = 0; i < col - 1; i++)
+	{
+		wallWorldMatrix = DirectX::SimpleMath::Matrix::CreateWorld(
+			{ -i * wallDimensions.x - wallDimensions.x / 2, wallDimensions.y / 2, -(int)row * wallDimensions.x},
+			DirectX::SimpleMath::Vector3::Backward,
+			DirectX::SimpleMath::Vector3::Up
+		);
+		wall->Draw(wallWorldMatrix, camera.getViewMatrix(), camera.getProjectionMatrix(), DirectX::SimpleMath::Color(3, 3, 3), wallTexture.Get());
+	}
+	wallWorldMatrix = DirectX::SimpleMath::Matrix::CreateWorld(
+		{ -int(col-1) * wallDimensions.x - wallDimensions.x / 2, wallDimensions.y / 2, -(int)row * wallDimensions.x },
+		DirectX::SimpleMath::Vector3::Backward,
+		DirectX::SimpleMath::Vector3::Up
+	);
+	wall->Draw(wallWorldMatrix, camera.getViewMatrix(), camera.getProjectionMatrix(), DirectX::Colors::Green, wallTexture.Get());
+
+	for (int i = 0; i < row; i++)
+	{
+		for (int j = 0; j < col; j++)
+		{
+			if (i == row - 1 && j == col - 1)
+				break;
+			floorWorldMatrix = DirectX::SimpleMath::Matrix::CreateWorld(
+				{ -j * floorDimensions.x - floorDimensions.x / 2, 0, -i * floorDimensions.y - floorDimensions.y / 2 },
+				DirectX::SimpleMath::Vector3::Up,
+				DirectX::SimpleMath::Vector3::Forward
+			);
+			floor->Draw(floorWorldMatrix, camera.getViewMatrix(), camera.getProjectionMatrix(), DirectX::Colors::White, floorTexture.Get());
+		}
+	}
+	floorWorldMatrix = DirectX::SimpleMath::Matrix::CreateWorld(
+		{ -int(col - 1) * floorDimensions.x - floorDimensions.x / 2, 0, -int(row-1) * floorDimensions.y - floorDimensions.y / 2 },
+		DirectX::SimpleMath::Vector3::Up,
+		DirectX::SimpleMath::Vector3::Forward
+	);
+	floor->Draw(floorWorldMatrix, camera.getViewMatrix(), camera.getProjectionMatrix(), DirectX::Colors::Green, floorTexture.Get());
+
+
+	for (int i = 0; i < row; i++)
+	{
+		for (int j = 0; j < col; j++)
+		{
+			for (int k = 0; k < 4; k++)
+			{
+				switch (maze[i][j].walls & static_cast<Cell::Walls>(1 << k))
+				{
+				case Cell::Walls::Top:
+					wallWorldMatrix = DirectX::SimpleMath::Matrix::CreateWorld(
+						{-j * wallDimensions.x - wallDimensions.x / 2, wallDimensions.y / 2, -i * wallDimensions.x},
+						DirectX::SimpleMath::Vector3::Forward,
+						DirectX::SimpleMath::Vector3::Up
+					);
+					break;
+
+				case Cell::Walls::Bottom:
+					wallWorldMatrix = DirectX::SimpleMath::Matrix::CreateWorld(
+						{-j * wallDimensions.x - wallDimensions.x / 2, wallDimensions.y / 2, (-j - 1) * wallDimensions.x},
+						DirectX::SimpleMath::Vector3::Backward,
+						DirectX::SimpleMath::Vector3::Up
+					);
+					break;
+
+				case Cell::Walls::Left:
+					wallWorldMatrix = DirectX::SimpleMath::Matrix::CreateWorld(
+						{-j * wallDimensions.x, wallDimensions.y / 2, -i * wallDimensions.x - wallDimensions.x / 2},
+						DirectX::SimpleMath::Vector3::Left,
+						DirectX::SimpleMath::Vector3::Up
+					);
+					break;
+
+				case Cell::Walls::Right:
+					wallWorldMatrix = DirectX::SimpleMath::Matrix::CreateWorld(
+						{(-j - 1) * wallDimensions.x, wallDimensions.y / 2, -i * wallDimensions.x - wallDimensions.x / 2},
+						DirectX::SimpleMath::Vector3::Right,
+						DirectX::SimpleMath::Vector3::Up
+					);
+					break;
+				}
+				wall->Draw(wallWorldMatrix, camera.getViewMatrix(), camera.getProjectionMatrix(),DirectX::SimpleMath::Color(3, 3, 3), wallTexture.Get());
+			}
+		}
+	}
+}
+
+bool Maze::isDirectionOutOfBounds(Cell::Direction nextCell, size_t row, size_t col, size_t i, size_t j)
 {
 	switch (nextCell)
 	{
 	case Cell::Direction::Up:
-		return originRow <= 0;
-
-	case Cell::Direction::Right:
-		return originCol + 1 >= col;
+		return i == 0;
 
 	case Cell::Direction::Down:
-		return originRow + 1 >= row;
+		return i + 1 >= row;
 
 	case Cell::Direction::Left:
-		return originCol <= 0;
+		return j == 0;
+
+	case Cell::Direction::Right:
+		return j + 1 >= col;
 	}
 }
 
